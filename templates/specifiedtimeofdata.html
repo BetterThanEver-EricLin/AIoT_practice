@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature and Humidity Data by Range</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+</head>
+
+<body>
+    {% extends "base.html" %}
+
+    {% block title %}Data by Range{% endblock %}
+
+    {% block content %}
+    <div class="container py-5">
+        <h1 class="mb-4">Temperature and Humidity Data by Range</h1>
+        <div class="mb-3">
+            <label for="start" class="form-label">Start Date:</label>
+            <div class="input-group date" id="startPicker" data-target-input="nearest">
+                <input type="text" id="start" class="form-control datetimepicker-input" data-target="#startPicker" />
+                <div class="input-group-text" data-target="#startPicker" data-toggle="datetimepicker">
+                    <i class="bi bi-calendar"></i>
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="end" class="form-label">End Date:</label>
+            <div class="input-group date" id="endPicker" data-target-input="nearest">
+                <input type="text" id="end" class="form-control datetimepicker-input" data-target="#endPicker" />
+                <div class="input-group-text" data-target="#endPicker" data-toggle="datetimepicker">
+                    <i class="bi bi-calendar"></i>
+                </div>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="fetchRangeData()">Show Data</button>
+        <div id="container" style="width:100%; height:400px;"></div>
+        <a href="/" class="btn btn-primary mt-3"><i class="bi bi-house"></i> Back to Homepage</a>
+    </div>
+
+    <!-- Bootstrap and jQuery script tags -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap DateTimePicker script tags -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+
+    <!-- Your custom JavaScript code -->
+    <script>
+        $(document).ready(function () {
+            // Initialize datetimepicker for start date input
+            $('#start').datetimepicker({
+                format: 'YYYY-MM-DD HH:mm:ss',  // Format for displaying the date
+                icons: {
+                    time: 'bi bi-clock',
+                    date: 'bi bi-calendar',
+                    up: 'bi bi-arrow-up',
+                    down: 'bi bi-arrow-down',
+                    previous: 'bi bi-arrow-left',
+                    next: 'bi bi-arrow-right',
+                    today: 'bi bi-calendar-check-o',
+                    clear: 'bi bi-trash',
+                    close: 'bi bi-close'
+                },
+                timeZone: 'Asia/Taipei' // Set time zone to UTC+8
+            });
+
+            // Initialize datetimepicker for end date input
+            $('#end').datetimepicker({
+                format: 'YYYY-MM-DD HH:mm:ss',  // Format for displaying the date
+                icons: {
+                    time: 'bi bi-clock',
+                    date: 'bi bi-calendar',
+                    up: 'bi bi-arrow-up',
+                    down: 'bi bi-arrow-down',
+                    previous: 'bi bi-arrow-left',
+                    next: 'bi bi-arrow-right',
+                    today: 'bi bi-calendar-check-o',
+                    clear: 'bi bi-trash',
+                    close: 'bi bi-close'
+                },
+                timeZone: 'Asia/Taipei' // Set time zone to UTC+8
+            });
+
+            $('#start').val('2024-05-21 10:30:00'); // Set default start date
+            $('#end').val('2024-05-21 10:35:30');   // Set default end date
+        });
+
+        function fetchRangeData() {
+            var start = $('#start').val();
+            var end = $('#end').val();
+
+            $.ajax({
+                url: '/data/range',
+                method: 'GET',
+                data: { start: start, end: end },
+                success: function (response) {
+                    var temperatureData = [];
+                    var humidityData = [];
+
+                    for (var i = 0; i < response.length; i++) {
+                        temperatureData.push([Date.parse(response[i].timestamp), response[i].temperature]);
+                        humidityData.push([Date.parse(response[i].timestamp), response[i].humidity]);
+                    }
+
+                    renderChart(temperatureData, humidityData);
+                },
+                error: function (xhr, status, error) {
+                    console.error(error);
+                }
+            });
+        }
+
+        function renderChart(temperatureData, humidityData) {
+            Highcharts.setOptions({
+                global: {
+                    timezoneOffset: -8 * 60 // Set time zone offset to UTC+8
+                }
+            });
+            Highcharts.chart('container', {
+                chart: {
+                    type: 'spline'
+                },
+                title: {
+                    text: 'Temperature and Humidity Data'
+                },
+                xAxis: {
+                    type: 'datetime',
+                    title: {
+                        text: 'Time'
+                    }
+                },
+                yAxis: [{
+                    title: {
+                        text: 'Temperature (°C)'
+                    }
+                }, {
+                    title: {
+                        text: 'Humidity (%)'
+                    },
+                    opposite: true
+                }],
+                series: [{
+                    name: 'Temperature',
+                    data: temperatureData
+                }, {
+                    name: 'Humidity',
+                    data: humidityData,
+                    yAxis: 1
+                }]
+            });
+        }
+    </script>
+    {% endblock %}
+</body>
+
+</html>

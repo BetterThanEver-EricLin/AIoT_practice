@@ -1,0 +1,54 @@
+/* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Navbar Styles */
+.navbar {
+    background-color: #343a40;
+}
+
+.navbar-brand {
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.navbar-nav .nav-link {
+    color: #ffffff;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* Form Styles */
+.form-label {
+    font-weight: bold;
+}
+
+/* Table Styles */
+.table {
+    margin-top: 20px;
+}
+
+/* Footer Styles */
+.footer {
+    background-color: #343a40;
+    color: #ffffff;
+    padding: 20px 0;
+    text-align: center;
+}

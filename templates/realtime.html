@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Highcharts Example</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="../static/style.css">
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    {% extends "base.html" %}
+
+    {% block title %}Real Time Data{% endblock %}
+
+    {% block content %}
+    <div class="container">
+        <div class="row mt-5">
+            <div class="col-md-10 offset-md-1">
+                <div id="container" style="height: 400px;"></div>
+                <a href="/" class="btn btn-primary mt-3"><i class="bi bi-house"></i> Back to Homepage</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            Highcharts.setOptions({
+                global: {
+                    timezoneOffset: -8 * 60 // Set time zone offset to UTC+8
+                }
+            });
+
+            var chart = Highcharts.chart('container', {
+                chart: {
+                    type: 'spline'
+                },
+                title: {
+                    text: 'Real Time Temperature & Humidity'
+                },
+                xAxis: {
+                    type: 'datetime',
+                    tickPixelInterval: 150
+                },
+                yAxis: [{
+                    title: {
+                        text: 'Temperature (°C)'
+                    }
+                }, {
+                    title: {
+                        text: 'Humidity (%)'
+                    },
+                    opposite: true
+                }],
+                series: [{
+                    name: 'Temperature',
+                    data: []
+                }, {
+                    name: 'Humidity',
+                    data: [],
+                    yAxis: 1
+                }]
+            });
+
+            function requestData() {
+                $.ajax({
+                    url: '/data/realtime',
+                    type: 'GET',
+                    success: function (data) {
+                        var x = new Date(data.timestamp).getTime();
+                        var temperature = parseFloat(data.temperature);
+                        var humidity = parseFloat(data.humidity);
+
+                        chart.series[0].addPoint([x, temperature], false, false);
+                        chart.series[1].addPoint([x, humidity], false, false);
+                        chart.redraw();
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(error);
+                    },
+                    complete: function () {
+                        setTimeout(requestData, 5000);  // Request data every 5 seconds
+                    }
+                });
+            }
+            requestData()
+        });
+        
+    </script>
+    {% endblock %}
+</body>
+</html>
